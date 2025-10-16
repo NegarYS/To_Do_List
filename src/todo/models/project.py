@@ -6,6 +6,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, date
 from typing import List, Optional
 
+from ..exception import (
+    ValidationError,
+    TaskLimitExceededError,
+)
 from ..config import config
 from .task import Task
 
@@ -28,16 +32,16 @@ class Project:
     def _validate_name(self):
         """Ensure that the project name is a valid non-empty string."""
         if not isinstance(self.name, str) or not self.name.strip():
-            raise ValueError("Project name must be a non-empty string.")
+            raise ValidationError("Project name cannot be empty.")
         if len(self.name) > 30:
-            raise ValueError("Project name must be at most 30 characters.")
+            raise ValidationError("Project name must be at most 30 words.")
 
     def _validate_description(self):
         """Ensure that the project description is within allowed length."""
         if self.description is None:
             self.description = ""
         if len(self.description) > 150:
-            raise ValueError("Project description must be at most 150 characters.")
+            raise ValidationError("Project description must be at most 150 characters.")
 
     def add_task(self, task: Task):
         """Add a new task to the project.
@@ -49,7 +53,7 @@ class Project:
             ValueError: If the project already contains the maximum number of tasks.
         """
         if len(self.tasks) >= config.MAX_NUMBER_OF_TASK:
-            raise ValueError("Max number of tasks reached for this project.")
+            raise TaskLimitExceededError("Max number of tasks reached for this project.")
         self.tasks.append(task)
 
     def remove_task(self, task_id: int) -> bool:

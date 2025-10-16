@@ -6,6 +6,10 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Optional
 
+from ..exception import (
+    ValidationError,
+    TaskLimitExceededError,
+)
 from ..config import config
 
 VALID_STATUSES = ("todo", "doing", "done")
@@ -31,21 +35,21 @@ class Task:
     def _validate_title(self) -> None:
         """Ensure that the title is non-empty and within character limits."""
         if not isinstance(self.title, str) or not self.title.strip():
-            raise ValueError("Task title must be a non-empty string.")
+            raise ValidationError("Task title must be a non-empty string.")
         if len(self.title) > 30:
-            raise ValueError("Task title must be at most 30 characters.")
+            raise ValidationError("Task title must be at most 30 characters.")
 
     def _validate_description(self) -> None:
         """Ensure that the description length does not exceed 150 characters."""
         if self.description is None:
             self.description = ""
         if len(self.description) > 150:
-            raise ValueError("Task description must be at most 150 characters.")
+            raise ValidationError("Task description must be at most 150 characters.")
 
     def _validate_status(self) -> None:
         """Ensure that the status value is valid."""
         if self.status not in VALID_STATUSES:
-            raise ValueError(f"Invalid status: {self.status}. Valid: {VALID_STATUSES}")
+            raise ValidationError(f"Invalid status: {self.status}. Valid: {VALID_STATUSES}")
 
     def change_status(self, new_status: str) -> None:
         """Change the task's status to a new valid one.
@@ -57,5 +61,5 @@ class Task:
             ValueError: If new_status is not valid.
         """
         if new_status not in VALID_STATUSES:
-            raise ValueError(f"Invalid status: {new_status}. Valid: {VALID_STATUSES}")
+            raise ValidationError(f"Invalid status: {new_status}. Valid: {VALID_STATUSES}")
         self.status = new_status
