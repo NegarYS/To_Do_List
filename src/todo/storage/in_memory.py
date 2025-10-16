@@ -9,6 +9,13 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional
 
+from ..exception import (
+    ProjectLimitExceededError,
+    TaskLimitExceededError,
+    ProjectNameExistsError,
+    ProjectNotFoundError,
+    TaskNotFoundError
+)
 from ..models.project import Project
 from ..models.task import Task
 from ..config import config
@@ -22,3 +29,30 @@ class InMemoryStorage:
         self._projects: Dict[int, Project] = {}
         self._next_project_id: int = 1
         self._next_task_id: int = 1
+
+    # ----------------------------- Project Methods -----------------------------
+
+    def create_project(self, name: str, description: str = "") -> Project:
+        """Create a new project and add it to the storage.
+
+        Args:
+            name (str): The project name (must be unique).
+            description (str): Optional project description.
+
+        Returns:
+            Project: The created project instance.
+
+        Raises:
+            ValueError: If the project limit is reached or name is not unique.
+        """
+        if len(self._projects) >= config.MAX_NUMBER_OF_PROJECT:
+            raise ProjectLimitExceededError("Max number of projects reached.")
+
+        for p in self._projects.values():
+            if p.name == name:
+                raise ProjectNameExistsError("Project name must be unique.")
+
+        project = Project(id=self._next_project_id, name=name, description=description)
+        self._projects[self._next_project_id] = project
+        self._next_project_id += 1
+        return project
