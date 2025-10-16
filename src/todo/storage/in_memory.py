@@ -22,4 +22,3 @@ class InMemoryStorage:
         self._projects: Dict[int, Project] = {}
         self._next_project_id: int = 1
         self._next_task_id: int = 1
-
