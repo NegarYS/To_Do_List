@@ -86,3 +86,22 @@ class InMemoryStorage:
             return project
         except ValueError as e:
             raise ValidationError(str(e)) from e
+
+    def delete_project(self, project_id: int) -> str:
+        """Delete a project and all its associated tasks.
+
+        Args:
+            project_id (int): The ID of the project to delete.
+
+        Returns:
+            str: The appropriate success or error message.
+
+        """
+        project = self.get_project(project_id)
+
+        # Explicit cascade delete for clarity
+        num_tasks = len(project.tasks)
+        project.tasks.clear()
+        del self._projects[project_id]
+
+        return f"✅ Project {project_id} deleted successfully with {num_tasks} tasks."
