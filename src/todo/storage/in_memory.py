@@ -33,6 +33,10 @@ class InMemoryStorage:
 
     # ----------------------------- Project Methods -----------------------------
 
+    def list_projects(self) -> List[Project]:
+        """Return list of projects sorted by creation time (ascending)."""
+        return sorted(self._projects.values(), key=lambda p: p.created_at)
+
     def create_project(self, name: str, description: str = "") -> Project:
         """Create a new project and add it to the storage.
 
