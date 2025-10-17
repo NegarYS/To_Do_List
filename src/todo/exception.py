@@ -26,6 +26,10 @@ class ValidationError(ToDoError):
     """Raised when input data violates validation rules."""
     pass
 
+class InvalidDeadlineError(ValidationError):
+    """Raised when the provided deadline is in the past."""
+    pass
+
 class StorageError(ToDoError):
     """Raised when something goes wrong with the storage layer."""
     pass
