@@ -109,3 +109,62 @@ class InMemoryStorage:
         del self._projects[project_id]
 
         return f"✅ Project {project_id} deleted successfully with {num_tasks} tasks."
+
+    # ----------------------------- Task Methods -----------------------------
+
+    def add_task(
+            self,
+            project_id: int,
+            title: str,
+            description: str = "",
+            status: Optional[str] = None,
+            deadline: Optional[str] = None,
+    ) -> Task:
+        """Add a new task to a project.
+
+        Args:
+            project_id (int): ID of the parent project.
+            title (str): Task title.
+            description (str): Optional task description.
+            status (Optional[str]): Optional task status.
+            deadline (Optional[str]): Optional task deadline.
+
+        Returns:
+            Task: The created task instance.
+
+        Raises:
+            KeyError: If the project is not found.
+            ValueError: If the maximum number of tasks is reached.
+        """
+        project = self.get_project(project_id)
+
+        if len(project.tasks) >= config.MAX_NUMBER_OF_TASK:
+            raise ValueError("Max number of tasks for this project reached.")
+
+        task = Task(
+            id=self._next_task_id,
+            title=title,
+            description=description,
+            status=status or config.DEFAULT_TASK_STATUS,
+            deadline=deadline,
+        )
+        project.add_task(task)
+        self._next_task_id += 1
+        return task
+
+    def remove_task(self, project_id: int, task_id: int) -> str:
+        """Remove a task from the given project.
+
+        Args:
+            project_id (int): ID of the parent project.
+            task_id (int): ID of the task to remove.
+
+        Returns:
+            str: The appropriate success or error message.
+        """
+        project = self.get_project(project_id)
+        deleted = project.remove_task(task_id)
+        if deleted:
+            return f"Task {task_id} deleted successfully from project {project_id}."
+        else:
+            return f"Error: Task {task_id} not found in project {project_id}."
