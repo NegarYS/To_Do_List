@@ -81,3 +81,44 @@ class Task:
         if new_status not in VALID_STATUSES:
             raise ValidationError(f"Invalid status: {new_status}. Valid: {VALID_STATUSES}")
         self.status = new_status
+
+    def edit(
+        self,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
+        deadline: Optional[str] = None,
+    ) -> None:
+        """Edit task details with proper validation.
+
+        Args:
+            title (Optional[str]): New title.
+            description (Optional[str]): New description.
+            status (Optional[str]): New status ("todo", "doing", "done").
+            deadline (Optional[str]): New deadline (YYYY-MM-DD).
+
+        Raises:
+            ValidationError: If any of the fields are invalid.
+        """
+        if title is not None:
+            self.title = title
+            self._validate_title()
+
+        if description is not None:
+            self.description = description
+            self._validate_description()
+
+        if status is not None:
+            self.status = status
+            self._validate_status()
+
+        if deadline is not None:
+            if isinstance(deadline, str):
+                try:
+                    deadline = datetime.strptime(deadline, "%Y-%m-%d").date()
+                except ValueError:
+                    raise ValidationError("Deadline format must be YYYY-MM-DD.")
+            self.deadline = deadline
+            self._validate_deadline()
+
+

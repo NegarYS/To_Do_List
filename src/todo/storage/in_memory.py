@@ -208,3 +208,38 @@ class InMemoryStorage:
         except ValueError as e:
             raise ValidationError(str(e)) from e
         return task
+
+    def update_task(
+        self,
+        project_id: int,
+        task_id: int,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        status: Optional[str] = None,
+        deadline: Optional[str] = None,
+    ) -> Task:
+        """Update an existing task with new values.
+
+        Args:
+            project_id (int): The project containing the task.
+            task_id (int): The task ID to update.
+            title, description, status, deadline: New values (optional).
+
+        Returns:
+            Task: The updated task.
+
+        Raises:
+            TaskNotFoundError: If task not found.
+            ValidationError: If new data is invalid.
+        """
+        project = self.get_project(project_id)
+        task = project.get_task(task_id)
+        if not task:
+            raise TaskNotFoundError(f"Task with ID {task_id} not found in project {project_id}.")
+
+        try:
+            task.edit(title=title, description=description, status=status, deadline=deadline)
+        except ValidationError as e:
+            raise ValidationError(str(e)) from e
+
+        return task
