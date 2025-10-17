@@ -77,9 +77,15 @@ class InMemoryStorage:
             Project: The created project instance.
 
         Raises:
-            ValueError: If the project limit is reached or name is not unique.
+            ValueError: If the project limit is reached.
+            ProjectNameExistsError: If the new name already exists.
         """
         project = self.get_project(project_id)
+        if name and name != project.name:
+            for p in self._projects.values():
+                if p.name == name:
+                    raise ProjectNameExistsError("Project name must be unique.")
+
         try:
             project.edit(name=name, description=description)
             print(f"Project {project_id} updated successfully.")
