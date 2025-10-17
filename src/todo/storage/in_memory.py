@@ -172,3 +172,33 @@ class InMemoryStorage:
             return f"Task {task_id} deleted successfully from project {project_id}."
         else:
             return f"Error: Task {task_id} not found in project {project_id}."
+
+    def change_task_status(
+            self,
+            project_id: int,
+            task_id: int,
+            new_status: str,
+    ) -> Task:
+        """Change the status of a task inside a project.
+
+        Args:
+            project_id (int): The ID of the project containing the task.
+            task_id (int): The ID of the task.
+            new_status (str): The new status to set.
+
+        Returns:
+            Task: The updated task instance.
+
+        Raises:
+            KeyError: If the project or task is not found.
+            ValueError: If the new status is invalid.
+        """
+        project = self.get_project(project_id)
+        task = project.get_task(task_id)
+        if not task:
+            raise TaskNotFoundError(f"Task with ID {task_id} not found.")
+        try:
+            task.change_status(new_status)
+        except ValueError as e:
+            raise ValidationError(str(e)) from e
+        return task
