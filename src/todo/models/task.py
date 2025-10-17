@@ -9,6 +9,7 @@ from typing import Optional
 from ..exception import (
     ValidationError,
     TaskLimitExceededError,
+    InvalidDeadlineError
 )
 from ..config import config
 
@@ -31,6 +32,7 @@ class Task:
         self._validate_title()
         self._validate_description()
         self._validate_status()
+        self._validate_deadline()
 
     def _validate_title(self) -> None:
         """Ensure that the title is non-empty and within character limits."""
@@ -45,6 +47,22 @@ class Task:
             self.description = ""
         if len(self.description) > 150:
             raise ValidationError("Task description must be at most 150 characters.")
+
+    def _validate_deadline(self) -> None:
+        """Ensure that the deadline, if provided, is a valid date and not in the past."""
+        if self.deadline is None:
+            return
+
+        #if the deadline is of type string, convert it to a date.
+        if isinstance(self.deadline, str):
+            try:
+                self.deadline = datetime.strptime(self.deadline, "%Y-%m-%d").date()
+            except ValueError:
+                raise ValidationError("Deadline format must be YYYY-MM-DD.")
+
+        # error if the deadline is in the past.
+        if self.deadline < date.today():
+            raise InvalidDeadlineError("Deadline cannot be in the past.")
 
     def _validate_status(self) -> None:
         """Ensure that the status value is valid."""

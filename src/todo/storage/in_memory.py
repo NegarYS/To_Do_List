@@ -133,21 +133,25 @@ class InMemoryStorage:
             Task: The created task instance.
 
         Raises:
-            KeyError: If the project is not found.
-            ValueError: If the maximum number of tasks is reached.
+            TaskLimitExceededError: If the maximum number of tasks is reached.
+            ValidationError: If task fields are invalid (title, description, status, deadline).
         """
         project = self.get_project(project_id)
 
         if len(project.tasks) >= config.MAX_NUMBER_OF_TASK:
-            raise ValueError("Max number of tasks for this project reached.")
+            raise TaskLimitExceededError("Max number of tasks for this project reached.")
 
-        task = Task(
-            id=self._next_task_id,
-            title=title,
-            description=description,
-            status=status or config.DEFAULT_TASK_STATUS,
-            deadline=deadline,
-        )
+        try:
+            task = Task(
+                id=self._next_task_id,
+                title=title,
+                description=description,
+                status=status or config.DEFAULT_TASK_STATUS,
+                deadline=deadline,
+            )
+        except ValidationError as e:
+            raise ValidationError(str(e))
+
         project.add_task(task)
         self._next_task_id += 1
         return task
