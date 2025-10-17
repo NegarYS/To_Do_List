@@ -14,7 +14,8 @@ from ..exception import (
     TaskLimitExceededError,
     ProjectNameExistsError,
     ProjectNotFoundError,
-    TaskNotFoundError
+    TaskNotFoundError,
+    ValidationError
 )
 from ..models.project import Project
 from ..models.task import Task
@@ -56,3 +57,32 @@ class InMemoryStorage:
         self._projects[self._next_project_id] = project
         self._next_project_id += 1
         return project
+
+    def get_project(self, project_id: int) -> Project:
+        """Return the project with the given ID, or raise an error if not found."""
+        project = self._projects.get(project_id)
+        if not project:
+            raise ProjectNotFoundError(f"Project with ID {project_id} not found.")
+        return project
+
+    def update_project(self, project_id: int, name: str = None, description: str = None) -> Project:
+        """Create a new project and add it to the storage.
+
+        Args:
+            project_id (int): The project ID.
+            name (str): The project name (must be unique).
+            description (str): Optional project description.
+
+        Returns:
+            Project: The created project instance.
+
+        Raises:
+            ValueError: If the project limit is reached or name is not unique.
+        """
+        project = self.get_project(project_id)
+        try:
+            project.edit(name=name, description=description)
+            print(f"Project {project_id} updated successfully.")
+            return project
+        except ValueError as e:
+            raise ValidationError(str(e)) from e
