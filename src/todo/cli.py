@@ -1,9 +1,11 @@
 """Command-Line Interface for the To-Do List Application."""
 
-from todo.services.todo_service import TodoService
+from todo.services.project_service import ProjectService
+from todo.services.task_service import TaskService
 from todo.exception import ValidationError, ProjectNotFoundError, TaskNotFoundError
 
-service = TodoService()
+project_service = ProjectService()
+task_service = TaskService()
 
 
 def print_menu():
@@ -27,7 +29,7 @@ def run_cli():
 
         try:
             if choice == "1":
-                projects = service.list_projects()
+                projects = project_service.list_projects()
                 if not projects:
                     print("⚠️  No projects found.")
                 else:
@@ -37,24 +39,24 @@ def run_cli():
             elif choice == "2":
                 name = input("Project name: ")
                 desc = input("Description (optional): ")
-                project = service.create_project(name, desc)
+                project = project_service.create_project(name, desc)
                 print(f"✅ Project '{project.name}' created successfully!")
 
             elif choice == "3":
                 pid = int(input("Enter project ID: "))
                 name = input("New name (leave blank to keep current): ")
                 desc = input("New description (leave blank to keep current): ")
-                project = service.update_project(pid, name or None, desc or None)
+                project = project_service.update_project(pid, name or None, desc or None)
                 print(f"✅ Project {project.id} updated successfully!")
 
             elif choice == "4":
                 pid = int(input("Enter project ID to delete: "))
-                msg = service.delete_project(pid)
+                msg = project_service.delete_project(pid)
                 print(msg)
 
             elif choice == "5":
                 pid = int(input("Enter project ID: "))
-                tasks = service.list_tasks(pid)
+                tasks = task_service.list_tasks(pid)
                 if not tasks:
                     print("⚠️  No tasks in this project.")
                 else:
@@ -68,7 +70,7 @@ def run_cli():
                 desc = input("Description (optional): ")
                 status = input("Status (todo/doing/done, optional): ")
                 deadline = input("Deadline (YYYY-MM-DD, optional): ")
-                task = service.create_task(pid, title, desc, status or None, deadline or None)
+                task = task_service.create_task(pid, title, desc, status or None, deadline or None)
                 print(f"✅ Task '{task.title}' added successfully!")
 
             elif choice == "7":
@@ -78,20 +80,20 @@ def run_cli():
                 desc = input("New description (leave blank to keep current): ")
                 status = input("New status (todo/doing/done, optional): ")
                 deadline = input("New deadline (YYYY-MM-DD, optional): ")
-                task = service.update_task(pid, tid, title or None, desc or None, status or None, deadline or None)
+                task = task_service.update_task(pid, tid, title or None, desc or None, status or None, deadline or None)
                 print(f"✅ Task {task.id} updated successfully!")
 
             elif choice == "8":
                 pid = int(input("Enter project ID: "))
                 tid = int(input("Enter task ID: "))
                 status = input("Enter new status (todo/doing/done): ")
-                task = service.change_task_status(pid, tid, status)
+                task = task_service.change_task_status(pid, tid, status)
                 print(f"🔄 Task {task.id} status changed to '{task.status}'.")
 
             elif choice == "9":
                 pid = int(input("Enter project ID: "))
                 tid = int(input("Enter task ID: "))
-                msg = service.delete_task(pid, tid)
+                msg = task_service.delete_task(pid, tid)
                 print(msg)
 
             elif choice == "0":
