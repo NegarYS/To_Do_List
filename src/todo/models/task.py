@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
+from sqlalchemy import String, Text, DateTime, Date, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from todo.db.base import Base
 from ..exception import (
     ValidationError,
     TaskLimitExceededError,
@@ -13,22 +16,40 @@ from ..exception import (
 )
 from ..config import config
 
+if TYPE_CHECKING:
+    from .project import Project
+
+
 VALID_STATUSES = ("todo", "doing", "done")
 
 
-@dataclass
-class Task:
-    """Represents a single task in a to-do list."""
+class Task(Base):
+    """SQLAlchemy model for Task entity."""
 
-    id: int
-    title: str
-    description: str = ""
-    status: str = config.DEFAULT_TASK_STATUS
-    created_at: datetime = field(default_factory=datetime.now)
-    deadline: Optional[date] = None
+    __tablename__ = "tasks"
 
-    def __post_init__(self):
-        """Validate task fields after initialization."""
+    # Columns
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(30), nullable=False)
+    deadline: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    closed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    # Foreign Key
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
+
+    # Relationships
+    project: Mapped["Project"] = relationship("Project", back_populates="tasks")
+
+    description: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(10), default="todo")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+    def __repr__(self) -> str:
+        return f"Task(id={self.id}, title='{self.title}', status='{self.status}')"
+
+    def __init__(self, **kwargs):
+        """Initialize Task with validation."""
+        super().__init__(**kwargs)
         self._validate_title()
         self._validate_description()
         self._validate_status()
@@ -80,7 +101,21 @@ class Task:
         """
         if new_status not in VALID_STATUSES:
             raise ValidationError(f"Invalid status: {new_status}. Valid: {VALID_STATUSES}")
-        self.status = new_status
+
+        original_status = self.status
+        try:
+            self.status = new_status
+            self._validate_status()
+
+            # Auto-set closed_at when task is marked as done
+            if new_status == "done" and self.closed_at is None:
+                self.closed_at = datetime.now()
+            elif new_status != "done":
+                self.closed_at = None
+
+        except ValueError as e:
+            self.status = original_status
+            raise e
 
     def edit(
         self,
@@ -92,33 +127,55 @@ class Task:
         """Edit task details with proper validation.
 
         Args:
-            title (Optional[str]): New title.
-            description (Optional[str]): New description.
-            status (Optional[str]): New status ("todo", "doing", "done").
-            deadline (Optional[str]): New deadline (YYYY-MM-DD).
+            title: New title
+            description: New description
+            status: New status ("todo", "doing", "done")
+            deadline: New deadline (YYYY-MM-DD or date object)
 
         Raises:
-            ValidationError: If any of the fields are invalid.
+            ValueError: If any of the fields are invalid
         """
-        if title is not None:
-            self.title = title
-            self._validate_title()
+        # Store original values for rollback
+        original_title = self.title
+        original_description = self.description
+        original_status = self.status
+        original_deadline = self.deadline
 
-        if description is not None:
-            self.description = description
-            self._validate_description()
+        try:
+            if title is not None:
+                self.title = title
+                self._validate_title()
 
-        if status is not None:
-            self.status = status
-            self._validate_status()
+            if description is not None:
+                self.description = description
+                self._validate_description()
 
-        if deadline is not None:
-            if isinstance(deadline, str):
-                try:
-                    deadline = datetime.strptime(deadline, "%Y-%m-%d").date()
-                except ValueError:
-                    raise ValidationError("Deadline format must be YYYY-MM-DD.")
-            self.deadline = deadline
-            self._validate_deadline()
+            if status is not None:
+                self.status = status
+                self._validate_status()
+                # Handle closed_at for done status
+                if status == "done" and self.closed_at is None:
+                    self.closed_at = datetime.now()
+                elif status != "done":
+                    self.closed_at = None
+
+            if deadline is not None:
+                # Convert string to date if needed
+                if isinstance(deadline, str):
+                    try:
+                        self.deadline = datetime.strptime(deadline, "%Y-%m-%d").date()
+                    except ValueError:
+                        raise ValueError("Deadline format must be YYYY-MM-DD.")
+                else:
+                    self.deadline = deadline
+                self._validate_deadline()
+
+        except ValueError as e:
+            # Rollback all changes if any validation fails
+            self.title = original_title
+            self.description = original_description
+            self.status = original_status
+            self.deadline = original_deadline
+            raise e
 
 

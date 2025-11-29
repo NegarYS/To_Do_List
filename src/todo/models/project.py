@@ -1,31 +1,47 @@
-"""Module defining the Project class for managing collections of tasks."""
+"""SQLAlchemy model for Project entity."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from datetime import datetime, date
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
-from ..exception import (
-    ValidationError,
-    TaskLimitExceededError,
-)
+from sqlalchemy import String, Text, DateTime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from todo.db.base import Base
+from ..exception import ValidationError
 from ..config import config
-from .task import Task
 
+if TYPE_CHECKING:
+    from .task import Task
 
-@dataclass
-class Project:
-    """Represents a project that contains a collection of tasks."""
+class Project(Base):
+    """SQLAlchemy model for Project entity."""
 
-    id: int
-    name: str
-    description: str = ""
-    created_at: datetime = field(default_factory=datetime.now)
-    tasks: List[Task] = field(default_factory=list)
+    __tablename__ = "projects"
 
-    def __post_init__(self):
-        """Validate the project's attributes after initialization."""
+    # Columns
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
+
+    # Relationships
+    tasks: Mapped[List["Task"]] = relationship(
+        "Task",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        lazy="select"
+    )
+
+    #Columns with default
+    description: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+    def __repr__(self) -> str:
+        return f"Project(id={self.id}, name='{self.name}')"
+
+    def __init__(self, **kwargs):
+        """Initialize project with validation."""
+        super().__init__(**kwargs)
         self._validate_name()
         self._validate_description()
 
@@ -34,7 +50,7 @@ class Project:
         if not isinstance(self.name, str) or not self.name.strip():
             raise ValidationError("Project name cannot be empty.")
         if len(self.name) > 30:
-            raise ValidationError("Project name must be at most 30 words.")
+            raise ValidationError("Project name must be at most 30 characters.")
 
     def _validate_description(self):
         """Ensure that the project description is within allowed length."""
@@ -42,48 +58,6 @@ class Project:
             self.description = ""
         if len(self.description) > 150:
             raise ValidationError("Project description must be at most 150 characters.")
-
-    def add_task(self, task: Task):
-        """Add a new task to the project.
-
-        Args:
-            task (Task): The task instance to be added.
-
-        Raises:
-            ValueError: If the project already contains the maximum number of tasks.
-        """
-        if len(self.tasks) >= config.MAX_NUMBER_OF_TASK:
-            raise TaskLimitExceededError("Max number of tasks reached for this project.")
-        self.tasks.append(task)
-
-    def remove_task(self, task_id: int) -> bool:
-        """Remove a task by its ID.
-
-        Args:
-            task_id (int): The ID of the task to remove.
-
-        Returns:
-            bool: True if the task was found and removed, False otherwise.
-        """
-        for i, t in enumerate(self.tasks):
-            if t.id == task_id:
-                del self.tasks[i]
-                return True
-        return False
-
-    def get_task(self, task_id: int) -> Task | None:
-        """Retrieve a task by its ID.
-
-        Args:
-            task_id (int): The ID of the task to retrieve.
-
-        Returns:
-            Optional[Task]: The matching Task instance, or None if not found.
-        """
-        for t in self.tasks:
-            if t.id == task_id:
-                return t
-        return None
 
     def edit(self, name: Optional[str] = None, description: Optional[str] = None):
         """Edit the project's name and/or description.
@@ -95,9 +69,23 @@ class Project:
         Raises:
             ValueError: If provided values are invalid.
         """
-        if name is not None:
-            self.name = name
-            self._validate_name()
-        if description is not None:
-            self.description = description
-            self._validate_description()
+        original_name = self.name
+        original_description = self.description
+
+        try:
+            if name is not None:
+                self.name = name
+                self._validate_name()
+
+            if description is not None:
+                self.description = description
+                self._validate_description()
+
+        except ValidationError as e:
+            # Rollback in case of validation error
+            self.name = original_name
+            self.description = original_description
+            raise e
+
+
+
