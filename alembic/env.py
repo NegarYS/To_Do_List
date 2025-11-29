@@ -1,13 +1,23 @@
+import os
+import sys
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC_DIR = os.path.join(BASE_DIR, "src")
+sys.path.insert(0, SRC_DIR)
+
+
 from alembic import context
 
-from src.todo.db.base import Base
+from todo.db.base import Base
+from todo.models.project import Project
+from todo.models.task import Task
 
-from src.todo.models import project, task
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
