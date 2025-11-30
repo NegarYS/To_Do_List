@@ -29,7 +29,7 @@ class Task(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String(30), nullable=False)
     deadline: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    closed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
 
     # Foreign Key
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
@@ -104,11 +104,7 @@ class Task(Base):
             self.status = new_status
             self._validate_status()
 
-            # Auto-set closed_at when task is marked as done
-            if new_status == "done" and self.closed_at is None:
-                self.closed_at = datetime.now()
-            elif new_status != "done":
-                self.closed_at = None
+
 
         except ValueError as e:
             self.status = original_status
@@ -150,11 +146,7 @@ class Task(Base):
             if status is not None:
                 self.status = status
                 self._validate_status()
-                # Handle closed_at for done status
-                if status == "done" and self.closed_at is None:
-                    self.closed_at = datetime.now()
-                elif status != "done":
-                    self.closed_at = None
+
 
             if deadline is not None:
                 # Convert string to date if needed
