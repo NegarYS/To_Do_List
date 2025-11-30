@@ -2,7 +2,8 @@
 
 from todo.services.project_service import ProjectService
 from todo.services.task_service import TaskService
-from todo.exception import ValidationError, ProjectNotFoundError, TaskNotFoundError
+from todo.exceptions.base import ValidationError
+from todo.exceptions.service_exceptions import ProjectNotFoundError, TaskNotFoundError
 
 project_service = ProjectService()
 task_service = TaskService()

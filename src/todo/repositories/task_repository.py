@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
 from ..config import config
-from ..exception import (
+from ..exceptions.service_exceptions import (
     TaskNotFoundError,
     ProjectNotFoundError,
     TaskLimitExceededError,

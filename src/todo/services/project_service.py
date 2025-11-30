@@ -6,7 +6,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from ..repositories.project_repository import ProjectRepository
-from ..exception import ProjectNotFoundError
+from todo.exceptions.service_exceptions import ProjectNotFoundError
 
 class ProjectService:
     """Provides business logic for managing projects."""

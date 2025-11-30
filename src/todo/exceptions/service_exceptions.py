@@ -1,6 +1,4 @@
-class ToDoError(Exception):
-    """Base exception for all ToDoList errors."""
-    pass
+from .base import ToDoError , ValidationError
 
 class ProjectNotFoundError(ToDoError):
     """Raised when a project with a given ID does not exist."""
@@ -22,14 +20,6 @@ class TaskLimitExceededError(ToDoError):
     """Raised when the maximum number of tasks for a project has been reached."""
     pass
 
-class ValidationError(ToDoError):
-    """Raised when input data violates validation rules."""
-    pass
-
 class InvalidDeadlineError(ValidationError):
     """Raised when the provided deadline is in the past."""
-    pass
-
-class StorageError(ToDoError):
-    """Raised when something goes wrong with the storage layer."""
     pass

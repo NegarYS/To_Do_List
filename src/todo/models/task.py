@@ -9,11 +9,8 @@ from sqlalchemy import String, Text, DateTime, Date, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from todo.db.base import Base
-from ..exception import (
-    ValidationError,
-    TaskLimitExceededError,
-    InvalidDeadlineError
-)
+from todo.exceptions.base import ValidationError
+from todo.exceptions.service_exceptions import TaskLimitExceededError, InvalidDeadlineError
 from ..config import config
 
 if TYPE_CHECKING:

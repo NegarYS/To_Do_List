@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 
 from ..models.project import Project
-from ..exception import (
+from ..exceptions.service_exceptions import (
     ProjectNotFoundError,
     ProjectNameExistsError,
     ProjectLimitExceededError,

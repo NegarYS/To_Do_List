@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from ..repositories.task_repository import TaskRepository
 from ..repositories.project_repository import ProjectRepository
-from ..exception import TaskNotFoundError, ProjectNotFoundError
+from ..exceptions.service_exceptions import TaskNotFoundError, ProjectNotFoundError
 
 
 class TaskService:
