@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from sqlalchemy import select, func
+from datetime import date
+from sqlalchemy import select, func, and_
 from sqlalchemy.orm import Session
 
 from ..config import config
@@ -218,3 +219,38 @@ class TaskRepository:
         self.session.commit()
         return True
 
+    def get_overdue_tasks(self) -> List[Task]:
+        """Get all tasks that are overdue and not done."""
+
+        stmt = select(Task).where(
+            and_(
+                Task.deadline < date.today(),
+                Task.status != "done",
+                Task.closed_at.is_(None)
+            )
+        )
+
+        return list(self.session.scalars(stmt))
+
+    def close_overdue_tasks(self) -> int:
+        """
+        Close all overdue tasks using model's business logic.
+        Returns the number of tasks closed.
+        """
+        overdue_tasks = self.get_overdue_tasks()
+        closed_count = 0
+
+        for task in overdue_tasks:
+            try:
+
+                task.change_status("done")
+                closed_count += 1
+                print(f"   ✅ Closed: {task.title} (Project: {task.project.name})")
+            except Exception as e:
+                print(f"   ❌ Failed to close task {task.id}: {e}")
+                continue
+
+        if closed_count > 0:
+            self.session.commit()
+
+        return closed_count
