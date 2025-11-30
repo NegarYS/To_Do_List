@@ -1,19 +1,20 @@
 """Service layer providing high-level operations for tasks."""
 
-from __future__ import annotations
+from typing import List, Optional
+from sqlalchemy.orm import Session
 
-from typing import Optional, List
-
-from ..storage.in_memory import InMemoryStorage
-from ..models.task import Task
+from ..repositories.task_repository import TaskRepository
+from ..repositories.project_repository import ProjectRepository
+from ..exception import TaskNotFoundError, ProjectNotFoundError
 
 
 class TaskService:
     """Provides business logic for managing tasks."""
 
-    def __init__(self, storage: Optional[InMemoryStorage] = None):
-        """Initialize the service with a storage backend."""
-        self.storage = storage or InMemoryStorage()
+    def __init__(self, session: Session):
+        """Initialize the service with a repository."""
+        self.task_repo = TaskRepository(session)
+        self.project_repo = ProjectRepository(session)
 
     def create_task(
         self,
@@ -22,29 +23,39 @@ class TaskService:
         description: str = "",
         status: Optional[str] = None,
         deadline: Optional[str] = None,
-    ) -> Task:
+    ):
         """Add a new task to a project."""
-        return self.storage.add_task(project_id, title, description, status, deadline)
+        return self.task_repo.create(project_id, title, description, status, deadline)
 
-    def list_tasks(self, project_id: int) -> List[Task]:
+    def list_tasks(self, project_id: int) -> List:
         """List all tasks for a given project.
 
         Args:
             project_id (int): The ID of the parent project.
-
-        Returns:
-            List[Task]: All tasks of that project.
         """
-        project = self.storage.get_project(project_id)
-        return project.tasks
+        # Verify project exists
+        project = self.project_repo.get_by_id(project_id)
+        if not project:
+            raise ProjectNotFoundError(f"Project with ID {project_id} not found")
 
-    def change_task_status(self, project_id: int, task_id: int, new_status: str) -> Task:
+        return self.task_repo.get_by_project_id(project_id)
+
+    def change_task_status(self, project_id: int, task_id: int, new_status: str):
         """Change the status of a specific task."""
-        return self.storage.change_task_status(project_id, task_id, new_status)
+        task = self.task_repo.get_by_id(task_id)
+        if not task or task.project_id != project_id:
+            raise TaskNotFoundError(f"Task with ID {task_id} not found in project {project_id}")
+
+        return self.task_repo.change_status(task_id, new_status)
 
     def delete_task(self, project_id: int, task_id: int) -> str:
         """Remove a task from a project."""
-        return self.storage.remove_task(project_id, task_id)
+        task = self.task_repo.get_by_id(task_id)
+        if not task or task.project_id != project_id:
+            raise TaskNotFoundError(f"Task with ID {task_id} not found in project {project_id}")
+
+        self.task_repo.delete(task_id)
+        return f"Task {task_id} deleted successfully"
 
     def update_task(
         self,
@@ -54,6 +65,10 @@ class TaskService:
         description: Optional[str] = None,
         status: Optional[str] = None,
         deadline: Optional[str] = None,
-    ) -> Task:
+    ):
         """Update an existing task."""
-        return self.storage.update_task(project_id, task_id, title, description, status, deadline)
+        task = self.task_repo.get_by_id(task_id)
+        if not task or task.project_id != project_id:
+            raise TaskNotFoundError(f"Task with ID {task_id} not found in project {project_id}")
+
+        return self.task_repo.update(task_id, title, description, status, deadline)
