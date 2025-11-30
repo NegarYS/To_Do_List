@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional, TYPE_CHECKING
 
-from sqlalchemy import String, Text, DateTime, Date, ForeignKey
+from sqlalchemy import String, Text, DateTime, Date, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from todo.db.base import Base
@@ -26,13 +26,13 @@ class Task(Base):
     __tablename__ = "tasks"
 
     # Columns
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(String(30), nullable=False)
+    id: Mapped[int] = mapped_column(Integer,primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
     deadline: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
 
 
     # Foreign Key
-    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
+    project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), index=True)
 
     # Relationships
     project: Mapped["Project"] = relationship("Project", back_populates="tasks")

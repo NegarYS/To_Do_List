@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, date
 from typing import List, Optional, TYPE_CHECKING
 
-from sqlalchemy import String, Text, DateTime
+from sqlalchemy import String, Text, DateTime, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from todo.db.base import Base
@@ -21,8 +21,8 @@ class Project(Base):
     __tablename__ = "projects"
 
     # Columns
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(Integer,primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(30), unique=True, nullable=False, index=True)
 
     # Relationships
     tasks: Mapped[List["Task"]] = relationship(
