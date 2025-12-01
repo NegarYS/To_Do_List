@@ -1,10 +1,18 @@
-"""Command-Line Interface for the To-Do List Application."""
+"""Command-line interface for the To-Do List application.
 
+This module provides an interactive CLI for managing projects and tasks.
+Users can create, edit, delete, and list both projects and tasks.
+"""
+
+from todo.db.session import get_session
+from todo.exceptions.base import ValidationError
+from todo.exceptions.service_exceptions import  (
+    ProjectNotFoundError,
+    TaskNotFoundError,
+)
 from todo.services.project_service import ProjectService
 from todo.services.task_service import TaskService
-from todo.db.session import get_session
-from todo.exceptions.service_exceptions import  ProjectNotFoundError, TaskNotFoundError
-from todo.exceptions.base import ValidationError
+
 
 class TodoCLI:
     """CLI class for Todo List Application."""
@@ -14,6 +22,7 @@ class TodoCLI:
         self.task_service = task_service
 
     def print_menu(self):
+        """Display the main menu options."""
         print("\n📋 --- To-Do List Menu ---")
         print("1. List all projects")
         print("2. Create a new project")
@@ -27,6 +36,8 @@ class TodoCLI:
         print("0. Exit")
 
     def handle_list_projects(self):
+        """Print all available projects."""
+
         projects = self.project_service.list_projects()
         if not projects:
             print("⚠️  No projects found.")
@@ -35,12 +46,16 @@ class TodoCLI:
                 print(f"[{p.id}] {p.name} - {p.description or '-'}")
 
     def handle_create_project(self):
+        """Handle creation of a new project."""
+
         name = input("Project name: ")
         desc = input("Description (optional): ")
         project = self.project_service.create_project(name, desc)
         print(f"✅ Project '{project.name}' created successfully!")
 
     def handle_edit_project(self):
+        """Handle editing an existing project."""
+
         pid = int(input("Enter project ID: "))
         name = input("New name (leave blank to keep current): ")
         desc = input("New description (leave blank to keep current): ")
@@ -48,15 +63,21 @@ class TodoCLI:
         print(f"✅ Project {project.id} updated successfully!")
 
     def handle_delete_project(self):
+        """Handle deleting a project."""
+
         pid = int(input("Enter project ID to delete: "))
         msg = self.project_service.delete_project(pid)
         print(msg)
 
     def handle_list_tasks(self):
+        """List all tasks belonging to a project."""
+
         pid = int(input("Enter project ID: "))
         tasks = self.task_service.list_tasks(pid)
+
         if not tasks:
             print("⚠️  No tasks in this project.")
+
         else:
             for t in tasks:
                 deadline = t.deadline.strftime("%Y-%m-%d") if t.deadline else "-"
@@ -64,6 +85,8 @@ class TodoCLI:
                 print(f"[{t.id}] {t.title} - {t.status}{closed} (Deadline: {deadline})")
 
     def handle_create_task(self):
+        """Handle creating a new task under a project."""
+
         pid = int(input("Enter project ID: "))
         title = input("Task title: ")
         desc = input("Description (optional): ")
@@ -73,6 +96,8 @@ class TodoCLI:
         print(f"✅ Task '{task.title}' added successfully!")
 
     def handle_edit_task(self):
+        """Handle editing an existing task."""
+
         pid = int(input("Enter project ID: "))
         tid = int(input("Enter task ID: "))
         title = input("New title (leave blank to keep current): ")
@@ -83,6 +108,8 @@ class TodoCLI:
         print(f"✅ Task {task.id} updated successfully!")
 
     def handle_change_task_status(self):
+        """Handle changing the status of an existing task."""
+
         pid = int(input("Enter project ID: "))
         tid = int(input("Enter task ID: "))
         status = input("Enter new status (todo/doing/done): ")
@@ -90,6 +117,8 @@ class TodoCLI:
         print(f"🔄 Task {task.id} status changed to '{task.status}'.")
 
     def handle_delete_task(self):
+        """Handle deleting a task."""
+
         pid = int(input("Enter project ID: "))
         tid = int(input("Enter task ID: "))
         msg = self.task_service.delete_task(pid, tid)
@@ -136,10 +165,11 @@ class TodoCLI:
             print("\n👋 Application stopped by user")
 
 
-def run_cli():
+def run_cli() -> None:
     """Run the CLI application."""
 
     session = get_session()
+
     try:
         project_service = ProjectService(session)
         task_service = TaskService(session)

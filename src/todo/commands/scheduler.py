@@ -1,9 +1,10 @@
 """Scheduler for periodic tasks using the schedule library."""
 
-import schedule
 import time
 import threading
 from datetime import datetime
+
+import schedule
 
 from .autoclose_overdue import autoclose_overdue_tasks
 
@@ -103,7 +104,6 @@ if __name__ == "__main__":
     start_scheduler()
 
     try:
-
         while scheduler.is_running:
             time.sleep(1)
     except KeyboardInterrupt:

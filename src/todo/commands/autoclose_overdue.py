@@ -26,7 +26,6 @@ def autoclose_overdue_tasks():
 
         print(f" Found {len(overdue_before)} overdue task(s)")
 
-        # بستن تسک‌های overdue
         closed_count = task_repo.close_overdue_tasks()
 
         if closed_count > 0:
@@ -46,6 +45,7 @@ def autoclose_overdue_tasks():
 
 def main():
     """Entry point for command line execution."""
+
     print(" Starting auto-close overdue tasks job...")
     result = autoclose_overdue_tasks()
 
