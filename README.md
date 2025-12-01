@@ -1,184 +1,111 @@
-# 🧩 ToDoList - Phase 1 (In-Memory Implementation)
+# ToDoList Project — Phase 2 (Relational Database Version)
 
-This is the **Phase 1** implementation of the *ToDoList Project*, developed in Python using OOP principles.  
-It follows a clean, modular architecture with distinct layers for models, storage, services, and CLI interaction.
-
----
-
-## 📘 Project Overview
-
-This project is a simple **To-Do List Management System**, designed to help users manage multiple projects and tasks.  
-It supports the following key functionalities:
-
-### ✅ Core Features
-- Create, list, update, and delete **Projects**
-- Create, list, update, and delete **Tasks**
-- Change **Task Status** (`todo`, `doing`, `done`)
-- Validate project and task attributes (title, description, deadline, etc.)
-- Interactive **menu-based CLI interface**
-- Fully in-memory (no database or file storage in this phase)
+## 📌 Overview
+This README describes **Phase 2** of the ToDoList project, where the system transitions from an *in-memory implementation* (Phase 1) to a **Relational Database (RDB)-based architecture**.  
+This phase introduces PostgreSQL, SQLAlchemy ORM, migrations, repository pattern, and improved modular design — while keeping the business logic from Phase 1 intact.
 
 ---
 
-## 🧠 Architecture Overview
+## 🎯 Objectives of Phase 2
+In Phase 2, the ToDoList system is upgraded to support persistent data storage.  
+Key goals:
 
-The project follows a **Clean Layered Architecture**:
-
-```
-[ CLI Layer ] → [ Service Layer ] → [ Storage Layer ] → [ Model Layer ]
-```
-
-| Layer | Description |
-|--------|-------------|
-| **Model** | Defines domain objects (`Project`, `Task`) and validation rules |
-| **Storage** | Handles CRUD operations on in-memory data structures |
-| **Service** | Business logic connecting CLI and Storage |
-| **CLI** | User interface layer for interaction via the terminal |
-
-This separation ensures clean code, testability, and future scalability (e.g., adding a database layer in later phases).
+- Replace in-memory storage with **PostgreSQL**
+- Implement **SQLAlchemy ORM models** for `Project` and `Task`
+- Add **CRUD operations** through repository classes
+- Add **Alembic migrations** for schema versioning
+- Introduce a **command** for auto-closing overdue tasks
+- Maintain clean-layered architecture:
+  ```
+  CLI → Services → Repositories → Database (PostgreSQL)
+  ```
 
 ---
 
-## 🧩 Folder Structure
+## 🧩 Features Implemented in Phase 2
 
+### ✔ Persistent Storage  
+All Projects and Tasks are saved in a PostgreSQL database.
+
+### ✔ ORM-Based Models  
+Using SQLAlchemy Declarative Base for:
+- Project model  
+- Task model (with status + deadline + closed_at)
+
+### ✔ Repository Pattern  
+Each model has a dedicated repository for:
+- Adding records  
+- Fetching by ID  
+- Listing  
+- Project-specific task filtering  
+- Overdue task detection  
+
+### ✔ Business Logic in Services  
+Service layer handles:
+- Validations  
+- Status updates  
+- Autoclose-overdue logic  
+- Coordination between repositories  
+
+### ✔ Command: Auto-Close Overdue Tasks  
+A CLI command:
 ```
-To_Do_List/
-│
-├── src/
-│   └── todo/
-│       ├── cli.py
-│       ├── config.py
-│       ├── exception.py
-│       ├── models/
-│       │   ├── project.py
-│       │   └── task.py
-│       ├── services/
-│       │   └── todo_service.py
-│       └── storage/
-│           └── in_memory.py
-│
-├── .env.example
-│
-├── pyproject.toml
-└── README.md
+python -m todo.commands.autoclose_overdue
 ```
+Automatically sets status of overdue tasks to `done`.
 
 ---
 
-## ⚙️ Setup Instructions
 
-### 1️⃣ Clone the Repository
+## 🛠 Setup Instructions
 
-```bash
-git clone https://github.com/<your-username>/To_Do_List.git
-cd To_Do_List
+### 1️⃣ Install Dependencies
 ```
-
-### 2️⃣ Install Poetry (if not installed)
-
-Poetry is used to manage dependencies and virtual environments.
-
-#### Windows (PowerShell)
-```bash
-(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
-```
-
-#### macOS / Linux
-```bash
-curl -sSL https://install.python-poetry.org | python3 -
-```
-
-Verify installation:
-```bash
-poetry --version
-```
-
----
-
-### 3️⃣ Install Dependencies
-```bash
 poetry install
 ```
 
----
+### 2️⃣ Configure Environment
+Create `.env`:
+```
+DATABASE_URL=postgresql+psycopg2://user:pass@localhost:5432/todolist
+```
 
-### 4️⃣ Activate the Environment
-```bash
-poetry shell
+### 3️⃣ Run PostgreSQL (Docker recommended)
+```
+docker compose up -d
+```
+
+### 4️⃣ Run Alembic Migrations
+```
+alembic upgrade head
+```
+
+### 5️⃣ Run CLI Interface
+```
+poetry run todo
 ```
 
 ---
 
-### 5️⃣ Run the Interactive CLI
-```bash
-python -m todo.cli
-```
+
+## 🧠 Notes
+
+- Phase 2 maintains the clean architecture introduced in Phase 1  
+- Database versioning is now handled through **Alembic**  
+- Repositories abstract SQL operations  
+- Services ensure business rules remain separate and testable  
 
 ---
 
-## 🧭 CLI Menu Overview
-
-Once you run the application, you will see:
-
-```
-📋 --- To-Do List Menu ---
-1. List all projects
-2. Create a new project
-3. Edit a project
-4. Delete a project
-5. List tasks in a project
-6. Add a new task
-7. Edit a task
-8. Change task status
-9. Delete a task
-0. Exit
-```
-
-### 🧑‍💻 Example Usage
-
-#### ➤ Create a Project
-```
-Enter your choice: 2
-Project name: University Work
-Description: Assignments and Research
-✅ Project 'University Work' created successfully!
-```
-
-#### ➤ Add a Task
-```
-Enter your choice: 6
-Enter project ID: 1
-Task title: Write final report
-Deadline: 2025-11-01
-✅ Task 'Write final report' added successfully!
-```
-
-#### ➤ List Tasks
-```
-Enter your choice: 5
-Enter project ID: 1
-[1] Write final report - todo (Deadline: 2025-11-01)
-```
+## 📚 Technologies Used
+- Python 3.11+
+- SQLAlchemy 2.0 ORM
+- PostgreSQL 15+
+- Alembic migrations
+- Poetry (dependency management)
+- dotenv for configuration
 
 ---
-
-## ⚠️ Notes
-
-- Data is stored **only in memory**, meaning it resets after each program run.
-- Input validation ensures proper constraints (e.g., name length, valid deadlines, etc.).
-- All exceptions are handled gracefully, showing user-friendly messages.
-
----
-
-
-
-## 🧰 Technologies Used
-
-- **Python 3.11+**
-- **Poetry** (dependency and environment management)
-- **pytest** (testing framework)
-- **argparse / input-based CLI**
-- **dataclasses** for clean model design
 
 
 
