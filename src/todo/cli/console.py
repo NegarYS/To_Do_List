@@ -1,7 +1,7 @@
 """Command-line interface for the To-Do List application.
 
-This module provides an interactive CLI for managing projects and tasks.
-Users can create, edit, delete, and list both projects and tasks.
+WARNING: CLI interface is deprecated and will be removed in the next release.
+Please use the FastAPI HTTP interface instead.
 """
 
 from todo.db.session import get_session
@@ -15,11 +15,18 @@ from todo.services.task_service import TaskService
 
 
 class TodoCLI:
-    """CLI class for Todo List Application."""
+    """CLI class for Todo List Application.
+
+    DEPRECATED: This CLI will be removed in the next release.
+    Use the FastAPI HTTP interface instead.
+    """
 
     def __init__(self, project_service: ProjectService, task_service: TaskService):
         self.project_service = project_service
         self.task_service = task_service
+
+        print("\n⚠️  WARNING: CLI interface is deprecated and will be removed in the next release.")
+        print("   Please use the FastAPI HTTP interface instead.\n")
 
     def print_menu(self):
         """Display the main menu options."""
