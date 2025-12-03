@@ -2,6 +2,7 @@
 
 from datetime import datetime, date
 from typing import Optional, List
+
 from pydantic import BaseModel, Field
 
 from ..requests.task_requests import TaskStatus
@@ -19,7 +20,6 @@ class TaskResponse(BaseModel):
     closed_at: Optional[datetime] = Field(None, description="Completion timestamp")
     project_id: int = Field(..., description="Parent project ID")
 
-
     class Config:
         from_attributes = True
 
@@ -31,7 +31,7 @@ class TaskListResponse(BaseModel):
     count: int = Field(..., description="Number of tasks")
 
     @classmethod
-    def from_tasks(cls, tasks:list):
+    def from_tasks(cls, tasks:list) -> "TaskListResponse":
         """Helper method to create response from task list."""
         return cls(
             tasks=tasks,
@@ -42,8 +42,10 @@ class TaskListResponse(BaseModel):
 class TaskCreatedResponse(TaskResponse):
     """Response schema for task creation."""
 
-    message: str = Field(default="Task created successfully", description="Success message")
-
+    message: str = Field(
+        default="Task created successfully.",
+        description="Success message.",
+    )
 
 
 class TaskStatusUpdateResponse(BaseModel):

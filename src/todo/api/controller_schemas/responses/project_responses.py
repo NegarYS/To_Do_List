@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from typing import List
+
 from pydantic import BaseModel, Field
 
 
@@ -24,7 +25,7 @@ class ProjectListResponse(BaseModel):
     count: int = Field(..., description="Total number of projects")
 
     @classmethod
-    def from_projects(cls, projects: list):
+    def from_projects(cls, projects: list) -> "ProjectListResponse":
         """Helper method to create response from project list."""
         return cls(
             projects=projects,
@@ -35,6 +36,9 @@ class ProjectListResponse(BaseModel):
 class ProjectCreateResponse(ProjectResponse):
     """Response schema for project creation."""
 
-    message: str = Field(default="Project created successfully", description="Success message")
+    message: str = Field(
+        default="Project created successfully.",
+        description="Success message.",
+    )
 
 
