@@ -17,7 +17,6 @@ api_router.include_router(
 # Register task routes
 api_router.include_router(
     tasks_controller.router,
-    prefix="/tasks",
     tags=["Tasks"],
 )
 
