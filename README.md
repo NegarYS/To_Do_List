@@ -1,111 +1,95 @@
-# ToDoList Project — Phase 2 (Relational Database Version)
+# ToDo List API - Phase 3
 
-## 📌 Overview
-This README describes **Phase 2** of the ToDoList project, where the system transitions from an *in-memory implementation* (Phase 1) to a **Relational Database (RDB)-based architecture**.  
-This phase introduces PostgreSQL, SQLAlchemy ORM, migrations, repository pattern, and improved modular design — while keeping the business logic from Phase 1 intact.
+A modern **RESTful Web API** built with **FastAPI**, replacing the deprecated CLI interface. This project provides full CRUD operations for Projects and Tasks with automatic interactive documentation.
 
 ---
 
-## 🎯 Objectives of Phase 2
-In Phase 2, the ToDoList system is upgraded to support persistent data storage.  
-Key goals:
+## 🚀 Overview
 
-- Replace in-memory storage with **PostgreSQL**
-- Implement **SQLAlchemy ORM models** for `Project` and `Task`
-- Add **CRUD operations** through repository classes
-- Add **Alembic migrations** for schema versioning
-- Introduce a **command** for auto-closing overdue tasks
-- Maintain clean-layered architecture:
-  ```
-  CLI → Services → Repositories → Database (PostgreSQL)
-  ```
+The old command-line interface (CLI) is now **deprecated** and will be removed in Phase 4.
+
+### Migration
+
+Use the new HTTP API:
+
+```
+uvicorn todo.api.main:app --reload
+```
 
 ---
 
-## 🧩 Features Implemented in Phase 2
+## 🏗️ Architecture
 
-### ✔ Persistent Storage  
-All Projects and Tasks are saved in a PostgreSQL database.
-
-### ✔ ORM-Based Models  
-Using SQLAlchemy Declarative Base for:
-- Project model  
-- Task model (with status + deadline + closed_at)
-
-### ✔ Repository Pattern  
-Each model has a dedicated repository for:
-- Adding records  
-- Fetching by ID  
-- Listing  
-- Project-specific task filtering  
-- Overdue task detection  
-
-### ✔ Business Logic in Services  
-Service layer handles:
-- Validations  
-- Status updates  
-- Autoclose-overdue logic  
-- Coordination between repositories  
-
-### ✔ Command: Auto-Close Overdue Tasks  
-A CLI command:
 ```
-python -m todo.commands.autoclose_overdue
+HTTP Layer (FastAPI) → Service Layer → Repository Layer → PostgreSQL
 ```
-Automatically sets status of overdue tasks to `done`.
 
 ---
 
+## ⚡ Quick Start
 
-## 🛠 Setup Instructions
-
-### 1️⃣ Install Dependencies
-```
+```bash
+# 1. Install dependencies
 poetry install
-```
 
-### 2️⃣ Configure Environment
-Create `.env`:
-```
-DATABASE_URL=postgresql+psycopg2://user:pass@localhost:5432/todolist
-```
-
-### 3️⃣ Run PostgreSQL (Docker recommended)
-```
-docker compose up -d
-```
-
-### 4️⃣ Run Alembic Migrations
-```
+# 2. Start PostgreSQL
+docker-compose up -d
 alembic upgrade head
-```
 
-### 5️⃣ Run CLI Interface
-```
-poetry run todo
+# 3. Run API
+uvicorn todo.api.main:app --reload
+# Access: http://localhost:8000
 ```
 
 ---
 
+## 📍 API Endpoints
 
-## 🧠 Notes
+### **Projects**
 
-- Phase 2 maintains the clean architecture introduced in Phase 1  
-- Database versioning is now handled through **Alembic**  
-- Repositories abstract SQL operations  
-- Services ensure business rules remain separate and testable  
+* `GET /api/v1/projects` – List all projects
+* `POST /api/v1/projects` – Create a new project
+* `GET /api/v1/projects/{id}` – Get project details
+* `PUT /api/v1/projects/{id}` – Update a project
+* `DELETE /api/v1/projects/{id}` – Delete a project
+
+### **Tasks (Nested under Projects)**
+
+* `GET /api/v1/projects/{id}/tasks` – List tasks in a project
+* `POST /api/v1/projects/{id}/tasks` – Create a new task
+* `GET /api/v1/projects/{id}/tasks/{task_id}` – Get task details
+* `PUT /api/v1/projects/{id}/tasks/{task_id}` – Update a task
+* `PATCH /api/v1/projects/{id}/tasks/{task_id}/status` – Update task status
+* `DELETE /api/v1/projects/{id}/tasks/{task_id}` – Delete a task
 
 ---
 
-## 📚 Technologies Used
-- Python 3.11+
-- SQLAlchemy 2.0 ORM
-- PostgreSQL 15+
-- Alembic migrations
-- Poetry (dependency management)
-- dotenv for configuration
+## 📚 Documentation
+
+* Swagger UI: **[http://localhost:8000/docs](http://localhost:8000/docs)**
 
 ---
+
+## 🛠️ Features
+
+* ✔️ Auto-generated Swagger/OpenAPI docs
+* ✔️ Pydantic validation
+* ✔️ Nested RESTful resources
+* ✔️ Proper HTTP status codes
+* ✔️ CORS enabled
+* ✔️ SQLAlchemy ORM
+* ✔️ Layered architecture (Controller → Service → Repository)
+
+---
+
+## 🔧 Tech Stack
+
+* **FastAPI** – Modern Python framework
+* **Pydantic** – Data validation
+* **SQLAlchemy** – ORM
+* **PostgreSQL** – Database
+* **Uvicorn** – ASGI server
+
 
 
 
