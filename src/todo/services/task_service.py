@@ -72,3 +72,16 @@ class TaskService:
             raise TaskNotFoundError(f"Task with ID {task_id} not found in project {project_id}")
 
         return self.task_repo.update(task_id, title, description, status, deadline)
+
+
+    def get_task(self, project_id: int, task_id: int):
+        """Get a specific task by ID within a project."""
+
+        project = self.project_repo.get_by_id(project_id)
+        if not project:
+            raise ProjectNotFoundError(f"Project with ID {project_id} not found")
+
+        task = self.task_repo.get_by_id(task_id)
+        if not task or task.project_id != project_id:
+            raise TaskNotFoundError(f"Task with ID {task_id} not found in project {project_id}")
+        return task
